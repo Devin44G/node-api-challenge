@@ -43,7 +43,7 @@ router.delete('/projects/:id', validateProjectId, (req, res) => {
       res.status(200).json({ message: "Project successfully deleted" });
     })
     .catch(err => {
-      res.status(500).jason({ error: "Error deleting project" });
+      res.status(500).json({ error: "Error deleting project" });
     })
 });
 
@@ -91,7 +91,7 @@ router.get('/actions/:id', validateActionId, (req, res) => {
     });
 });
 
-router.post('/:id/actions', validateProjectId, validateAction, (req, res) => {
+router.post('/projects/:id/actions', validateProjectId, validateAction, (req, res) => {
   req.body.project_id = req.params.id;
   Action.insert(req.body)
    .then(action => {
@@ -108,30 +108,19 @@ router.delete('/actions/:id', validateActionId, (req, res) => {
       res.status(200).json({ message: "Action successfully deleted" });
     })
     .catch(err => {
-      res.status(500).jason({ error: "Error deleting action" });
+      res.status(500).json({ error: "Error deleting action" });
     })
 });
 
-// router.delete('/:id/actions/:id', validateActionId, (req, res) => {
-//   Action.remove(req.body.actions.id)
-//     .then(action => {
-//       res.status(200).json({ message: "User successfully deleted" });
-//     })
-//     .catch(err => {
-//       res.status(500).jason({ error: "Error deleting user" });
-//     })
-// });
-
-// router.put('/:id', validateUserId, (req, res) => {
-//   User.update(req.params.id, req.body)
-//     .then(user => {
-//       res.status(201).json(user);
-//     })
-//     .catch(err => {
-//       res.status(500).json({ error: "Error updating user" })
-//     });
-// });
-//
+router.put('/actions/:id', validateActionId, (req, res) => {
+  Action.update(req.params.id, req.body)
+    .then(project => {
+      res.status(201).json(project);
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error updating user" })
+    });
+});
 
 // VALIDATE PROJECT ID MIDDLEWARE
 function validateProjectId(req, res, next) {
@@ -162,8 +151,11 @@ function validateProject(req, res, next) {
 
 // VALIDATE ACTION MIDDLEWARE
 function validateAction(req, res, next) {
-  if(!req.body.description || !req.body.notes) {
-    res.status(400).json({ message: "Missing required text field." });
+  if(!req.body) {
+    res.status(400).json({ message: "Missing project data." });
+  }
+  else if(!req.body.description || !req.body.notes) {
+    res.status(400).json({ message: "Missing required name and description fields." });
   }
   next();
 }
@@ -175,19 +167,13 @@ function validateActionId(req, res, next) {
         req.project = project;
         next();
       } else {
-        res.status(400).json({ message: "Invalid project ID" });
+        res.status(400).json({ message: "Invalid action ID" });
       }
     })
     .catch(err => {
-      res.status(500).json({ message: "Error retrieving project data" });
+      res.status(500).json({ message: "Error retrieving action data" });
     });
 }
 
-// function isActionThere(req, res, next) {
-//   if(req.body.length === 0) {
-//     res.status(400).json({ message: "Missing action data." });
-//   }
-//   next();
-// }
 
 module.exports = router;
