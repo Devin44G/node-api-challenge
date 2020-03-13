@@ -4,6 +4,28 @@ const Action = require('../data/helpers/actionModel.js');
 
 const router = express.Router();
 
+/******** PROJECT ENDPOINTS ********/
+router.get('/', (req, res) => {
+  Project.get()
+    .then(projects => {
+      res.status(200).json(projects)
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving project data" });
+    });
+});
+
+router.get('/:id', validateProjectId, (req, res) => {
+  Project.get(req.params.id)
+    .then(project => {
+      if(project) {
+        res.status(200).json(project);
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving project data" });
+    });
+});
 
 router.post('/', validateProject, (req, res) => {
   Project.insert(req.body)
@@ -15,49 +37,48 @@ router.post('/', validateProject, (req, res) => {
     });
 });
 
-// router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
-//   req.body.user_id = req.params.id;
-//   Post.insert(req.body)
-//    .then(post => {
-//      res.status(201).json(post);
-//    })
-//    .catch(err => {
-//      res.status(500).json({error: "Error creating post"});
-//    });
-// });
-
-router.get('/', (req, res) => {
-  Project.get()
-    .then(projects => {
-      res.status(200).json(projects)
+router.delete('/:id', validateProjectId, (req, res) => {
+  Project.remove(req.params.id)
+    .then(project => {
+      res.status(200).json({ message: "User successfully deleted" });
     })
     .catch(err => {
-      res.status(500).json({ error: "Error retrieving project data" });
+      res.status(500).jason({ error: "Error deleting user" });
+    })
+});
+
+router.put('/:id', validateProjectId, (req, res) => {
+  Project.update(req.params.id, req.body)
+    .then(project => {
+      res.status(201).json(project);
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error updating user" })
     });
 });
 
-// router.get('/:id', validateUserId, (req, res) => {
-//   User.getById(req.params.id)
-//     .then(user => {
-//       if(user) {
-//         res.status(200).json(user);
-//       }
-//     })
-//     .catch(err => {
-//       res.status(500).json({ error: "Error retrieving user data" });
-//     });
-// });
-//
-// router.get('/:id/posts', validateUserId, (req, res) => {
-//   User.getUserPosts(req.params.id)
-//     .then(posts => {
-//       res.status(200).json(posts);
-//     })
-//     .catch(err => {
-//       res.status(500).json({ error: "Error retrieving posts data" });
-//     });
-// });
-//
+/******** ACTIONS ENDPOINTS ********/
+router.get('/:id/actions', validateProjectId, (req, res) => {
+  Project.getProjectActions(req.params.id)
+    .then(actions => {
+      res.status(200).json(actions);
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving posts data" });
+    });
+});
+
+router.post('/:id/actions', validateProjectId, validateAction, (req, res) => {
+  req.body.project_id = req.params.id;
+  Action.insert(req.body)
+   .then(action => {
+     res.status(201).json(action);
+   })
+   .catch(err => {
+     res.status(500).json({error: "Error creating post"});
+   });
+});
+
 // router.delete('/:id', validateUserId, (req, res) => {
 //   User.remove(req.params.id)
 //     .then(user => {
@@ -67,7 +88,7 @@ router.get('/', (req, res) => {
 //       res.status(500).jason({ error: "Error deleting user" });
 //     })
 // });
-//
+
 // router.put('/:id', validateUserId, (req, res) => {
 //   User.update(req.params.id, req.body)
 //     .then(user => {
@@ -81,10 +102,10 @@ router.get('/', (req, res) => {
 
 // VALIDATE PROJECT ID MIDDLEWARE
 function validateProjectId(req, res, next) {
-  User.getById(req.params.id)
-    .then(user => {
-      if(user) {
-        req.user = user;
+  Project.get(req.params.id)
+    .then(project => {
+      if(project) {
+        req.project = project;
         next();
       } else {
         res.status(400).json({ message: "Invalid project ID" });
@@ -105,16 +126,20 @@ function validateProject(req, res, next) {
   }
   next();
 }
-//
-// // VALIDATE POST MIDDLEWARE
-// function validatePost(req, res, next) {
-//   if(!req.body) {
-//     res.status(400).json({ message: "Missing post data." });
-//   }
-//   else if(!req.body.text) {
-//     res.status(400).json({ message: "Missing required text field." });
+
+// VALIDATE ACTION MIDDLEWARE
+function validateAction(req, res, next) {
+  if(!req.body.description || !req.body.notes) {
+    res.status(400).json({ message: "Missing required text field." });
+  }
+  next();
+}
+
+// function isActionThere(req, res, next) {
+//   if(req.body.length === 0) {
+//     res.status(400).json({ message: "Missing action data." });
 //   }
 //   next();
 // }
-//
+
 module.exports = router;
