@@ -1,21 +1,20 @@
 const express = require('express');
+const Project = require('../data/helpers/projectModel.js');
+const Action = require('../data/helpers/actionModel.js');
 
 const router = express.Router();
 
-// const User = require('./userDb.js');
 
-// const Post = require('../posts/postDb.js');
+router.post('/', validateProject, (req, res) => {
+  Project.insert(req.body)
+    .then(project => {
+      res.status(201).json(project);
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error publishing project" });
+    });
+});
 
-// router.post('/', validateUser, (req, res) => {
-//   User.insert(req.body)
-//     .then(user => {
-//       res.status(201).json(user);
-//     })
-//     .catch(err => {
-//       res.status(500).json({ error: "Error publishing user" });
-//     });
-// });
-//
 // router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
 //   req.body.user_id = req.params.id;
 //   Post.insert(req.body)
@@ -26,17 +25,17 @@ const router = express.Router();
 //      res.status(500).json({error: "Error creating post"});
 //    });
 // });
-//
-// router.get('/', (req, res) => {
-//   User.get(req.query)
-//     .then(users => {
-//       res.status(200).json(users)
-//     })
-//     .catch(err => {
-//       res.status(500).json({ error: "Error retrieving user data" });
-//     });
-// });
-//
+
+router.get('/', (req, res) => {
+  Project.get()
+    .then(projects => {
+      res.status(200).json(projects)
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving project data" });
+    });
+});
+
 // router.get('/:id', validateUserId, (req, res) => {
 //   User.getById(req.params.id)
 //     .then(user => {
@@ -79,33 +78,33 @@ const router = express.Router();
 //     });
 // });
 //
-// //custom middleware
-// // VALIDATE USER ID MIDDLEWARE
-// function validateUserId(req, res, next) {
-//   User.getById(req.params.id)
-//     .then(user => {
-//       if(user) {
-//         req.user = user;
-//         next();
-//       } else {
-//         res.status(400).json({ message: "Invalid user ID" });
-//       }
-//     })
-//     .catch(err => {
-//       res.status(500).json({ message: "Error retrieving user data" });
-//     });
-// }
-//
-// // VALIDATE USER MIDDLEWARE
-// function validateUser(req, res, next) {
-//   if(!req.body) {
-//     res.status(400).json({ message: "Missing user data." });
-//   }
-//   else if(!req.body.name) {
-//     res.status(400).json({ message: "Missing required name field." });
-//   }
-//   next();
-// }
+
+// VALIDATE PROJECT ID MIDDLEWARE
+function validateProjectId(req, res, next) {
+  User.getById(req.params.id)
+    .then(user => {
+      if(user) {
+        req.user = user;
+        next();
+      } else {
+        res.status(400).json({ message: "Invalid project ID" });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: "Error retrieving project data" });
+    });
+}
+
+// VALIDATE PROJECT MIDDLEWARE
+function validateProject(req, res, next) {
+  if(!req.body) {
+    res.status(400).json({ message: "Missing project data." });
+  }
+  else if(!req.body.name || !req.body.description) {
+    res.status(400).json({ message: "Missing required name and description fields." });
+  }
+  next();
+}
 //
 // // VALIDATE POST MIDDLEWARE
 // function validatePost(req, res, next) {
@@ -118,4 +117,4 @@ const router = express.Router();
 //   next();
 // }
 //
-// module.exports = router;
+module.exports = router;
