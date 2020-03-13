@@ -5,7 +5,7 @@ const Action = require('../data/helpers/actionModel.js');
 const router = express.Router();
 
 /******** PROJECT ENDPOINTS ********/
-router.get('/', (req, res) => {
+router.get('/projects', (req, res) => {
   Project.get()
     .then(projects => {
       res.status(200).json(projects)
@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', validateProjectId, (req, res) => {
+router.get('/projects/:id', validateProjectId, (req, res) => {
   Project.get(req.params.id)
     .then(project => {
       if(project) {
@@ -27,7 +27,7 @@ router.get('/:id', validateProjectId, (req, res) => {
     });
 });
 
-router.post('/', validateProject, (req, res) => {
+router.post('/projects', validateProject, (req, res) => {
   Project.insert(req.body)
     .then(project => {
       res.status(201).json(project);
@@ -37,17 +37,17 @@ router.post('/', validateProject, (req, res) => {
     });
 });
 
-router.delete('/:id', validateProjectId, (req, res) => {
+router.delete('/projects/:id', validateProjectId, (req, res) => {
   Project.remove(req.params.id)
     .then(project => {
-      res.status(200).json({ message: "User successfully deleted" });
+      res.status(200).json({ message: "Project successfully deleted" });
     })
     .catch(err => {
-      res.status(500).jason({ error: "Error deleting user" });
+      res.status(500).jason({ error: "Error deleting project" });
     })
 });
 
-router.put('/:id', validateProjectId, (req, res) => {
+router.put('/projects/:id', validateProjectId, (req, res) => {
   Project.update(req.params.id, req.body)
     .then(project => {
       res.status(201).json(project);
@@ -58,13 +58,36 @@ router.put('/:id', validateProjectId, (req, res) => {
 });
 
 /******** ACTIONS ENDPOINTS ********/
-router.get('/:id/actions', validateProjectId, (req, res) => {
+router.get('/projects/:id/actions', validateProjectId, (req, res) => {
   Project.getProjectActions(req.params.id)
     .then(actions => {
+      console.log('Actions: ', req.project.actions);
       res.status(200).json(actions);
     })
     .catch(err => {
       res.status(500).json({ error: "Error retrieving posts data" });
+    });
+});
+
+router.get('/actions', (req, res) => {
+  Action.get()
+    .then(projects => {
+      res.status(200).json(projects)
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving project data" });
+    });
+})
+
+router.get('/actions/:id', validateActionId, (req, res) => {
+  Action.get(req.params.id)
+    .then(project => {
+      if(project) {
+        res.status(200).json(project);
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ error: "Error retrieving project data" });
     });
 });
 
@@ -79,9 +102,19 @@ router.post('/:id/actions', validateProjectId, validateAction, (req, res) => {
    });
 });
 
-// router.delete('/:id', validateUserId, (req, res) => {
-//   User.remove(req.params.id)
-//     .then(user => {
+router.delete('/actions/:id', validateActionId, (req, res) => {
+  Project.remove(req.params.id)
+    .then(project => {
+      res.status(200).json({ message: "Action successfully deleted" });
+    })
+    .catch(err => {
+      res.status(500).jason({ error: "Error deleting action" });
+    })
+});
+
+// router.delete('/:id/actions/:id', validateActionId, (req, res) => {
+//   Action.remove(req.body.actions.id)
+//     .then(action => {
 //       res.status(200).json({ message: "User successfully deleted" });
 //     })
 //     .catch(err => {
@@ -133,6 +166,21 @@ function validateAction(req, res, next) {
     res.status(400).json({ message: "Missing required text field." });
   }
   next();
+}
+
+function validateActionId(req, res, next) {
+  Action.get(req.params.id)
+    .then(project => {
+      if(project) {
+        req.project = project;
+        next();
+      } else {
+        res.status(400).json({ message: "Invalid project ID" });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: "Error retrieving project data" });
+    });
 }
 
 // function isActionThere(req, res, next) {

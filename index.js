@@ -15,11 +15,12 @@ Go code!
 
 const express = require('express');
 const projectRouter = require('./api/projectRouter.js');
+const Action = require('./data/helpers/actionModel.js');
 
 const server = express();
 
 server.use(express.json());
-server.use('/api/projects', projectRouter);
+server.use('/api', projectRouter);
 
 server.get('/', (req, res) => {
   res.send(`<h2>All systems a go cap'n . . .</h2>`);
